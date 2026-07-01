@@ -6,19 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>スマホ迷路ゲーム</title>
     <style>
-        body { 
-            text-align: center; background: #222; color: white; 
-            font-family: sans-serif; touch-action: none; margin: 0; padding: 20px; 
-        }
-        canvas { 
-            background: white; cursor: crosshair; touch-action: none; 
-            max-width: 95vw; height: auto; border: 4px solid #fff; border-radius: 8px; 
-        }
+        body { text-align: center; background: #222; color: white; font-family: sans-serif; touch-action: none; margin: 0; padding: 20px; }
+        canvas { background: white; cursor: crosshair; touch-action: none; max-width: 95vw; height: auto; border: 4px solid #fff; border-radius: 8px; }
         #msg { margin: 15px; font-size: 1.2rem; font-weight: bold; color: #ffeb3b; }
     </style>
 </head>
 <body>
-    <div id="msg">画像解析中...</div>
+    <div style="margin-bottom:10px;">
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+    <div id="msg">画像を選択してください</div>
     <canvas id="mazeCanvas"></canvas>
 
 <script>
@@ -27,33 +24,39 @@ const ctx = canvas.getContext("2d");
 const msg = document.getElementById("msg");
 const img = new Image();
 
-// 【設定】ここにあなたの画像URLを入れてください
-img.crossOrigin = "Anonymous"; 
-img.src = 'https://i.imgur.com/Q6opy9g.png';
-
 let startX, startY, goalX, goalY;
 let isDragging = false;
 let startTime = null;
 
+// 画像読み込み時の処理を一箇所にまとめる
 img.onload = () => {
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
-    detectMarkers(); // 自動検知
+    detectMarkers();
 };
 
-// 【自動検知】画像内の緑(スタート)と赤(ゴール)を探す
+// 画像選択ボタンの処理
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => { img.src = event.target.result; };
+    reader.readAsDataURL(file);
+});
+
+// 自動検知
 function detectMarkers() {
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     for (let i = 0; i < data.length; i += 4) {
-        if (data[i+1] > 200 && data[i] < 50 && data[i+2] < 50) { // 緑
+        if (data[i+1] > 200 && data[i] < 50 && data[i+2] < 50) {
             startX = (i/4) % canvas.width; startY = Math.floor((i/4)/canvas.width);
         }
-        if (data[i] > 200 && data[i+1] < 50 && data[i+2] < 50) { // 赤
+        if (data[i] > 200 && data[i+1] < 50 && data[i+2] < 50) {
             goalX = (i/4) % canvas.width; goalY = Math.floor((i/4)/canvas.width);
         }
     }
-    msg.textContent = "緑の丸からスタート！";
+    msg.textContent = "緑からスタート！";
     drawBase();
 }
 
@@ -65,7 +68,7 @@ function drawBase() {
 
 function isWall(x, y) {
     const pixel = ctx.getImageData(x, y, 1, 1).data;
-    return (pixel[0] + pixel[1] + pixel[2] < 400); // 黒っぽい場所を壁とする
+    return (pixel[0] + pixel[1] + pixel[2] < 400);
 }
 
 canvas.addEventListener("pointerdown", (e) => {
@@ -83,15 +86,19 @@ canvas.addEventListener("pointermove", (e) => {
     const x = (e.clientX - rect.left) * (canvas.width / rect.width);
     const y = (e.clientY - rect.top) * (canvas.height / rect.height);
     if (isWall(x, y)) {
-        msg.textContent = "壁に触れた！やり直し..."; isDragging = false; drawBase();
+        msg.textContent = "壁！やり直し..."; isDragging = false; drawBase();
     } else {
         ctx.fillStyle = "blue"; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.fill();
         if (Math.hypot(x - goalX, y - goalY) < 40) {
-            msg.textContent = `🎉 クリア！ タイム: ${((Date.now()-startTime)/1000).toFixed(2)}秒`;
+            msg.textContent = `🎉クリア！ ${((Date.now()-startTime)/1000).toFixed(2)}秒`;
             isDragging = false;
         }
     }
 });
+
+// 初期画像読み込み（何も選択しない時のデフォルト）
+img.crossOrigin = "Anonymous";
+img.src = 'https://i.imgur.com/Q6opy9g.png';
 </script>
 </body>
 </html>
