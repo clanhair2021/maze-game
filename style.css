@@ -163,7 +163,7 @@ button:hover {
     border: 1.5px solid #000000;
 }
 
-/* 左側からスライドインするドロワー（引き出し）メニュー */
+/* 🧭 左側からスライドインするドロワー（引き出し）メニュー（スクロール対応最新版） */
 #drawer-menu {
     position: absolute;
     top: 0;
@@ -174,7 +174,7 @@ button:hover {
     border-right: var(--border-style);
     z-index: 60;
     transition: left 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
-    padding: 20px;
+    padding: 20px 15px;
     display: flex;
     flex-direction: column;
     text-align: left;
@@ -206,6 +206,21 @@ button:hover {
 .close-drawer:hover {
     color: #999;
     background: none;
+}
+
+/* メニュー内をスクロール可能にするためのエリア */
+.drawer-scroll-area {
+    flex: 1;
+    overflow-y: auto; /* 縦に溢れたらスクロールさせる */
+    padding-right: 5px;
+}
+
+/* スクリールバーの見た目をシンプルに */
+.drawer-scroll-area::-webkit-scrollbar {
+    width: 4px;
+}
+.drawer-scroll-area::-webkit-scrollbar-thumb {
+    background: #000000;
 }
 
 .drawer-section {
@@ -240,7 +255,66 @@ button:hover {
     color: #ffffff; 
 }
 
-/* 迷路を表示する大枠（画面全体に広げる） */
+/* 🛠️ ドロワー内に移植したため、古い下部固定の設定を完全に打ち消す */
+#admin-controls {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    background: none;
+    border: none;
+    padding: 0;
+    z-index: auto;
+}
+
+/* ファイル選択周りの見た目をスマートに */
+.admin-input-group {
+    margin-bottom: 15px;
+}
+.admin-input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.admin-input-group input[type="file"] {
+    width: 100%;
+    font-size: 11px;
+    font-family: inherit;
+}
+
+/* 管理者用の設定ゾーン */
+.setup-zone { 
+    border: 1px dashed #000; 
+    padding: 10px; 
+    margin: 15px 0; 
+    background: #fafafa; 
+}
+#setup-status {
+    display: block;
+    font-size: 11px;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+.admin-sub { 
+    font-size: 11px; 
+    padding: 6px; 
+    background: #ffffff; 
+    width: 100%;
+    margin-top: 5px;
+    text-align: center;
+}
+.admin-save { 
+    background: #000000; 
+    color: #ffffff; 
+    width: 100%; 
+    margin-top: 10px; 
+    padding: 12px; 
+    font-size: 13px;
+}
+
+/* 🖼️ 迷路を表示する大枠（画面全体に広げる） */
 #canvas-container { 
     position: absolute;
     top: 0;
@@ -273,23 +347,6 @@ button:hover {
     z-index: 2;
 }
 
-/* 管理者メニューが表示されている場合は画面下部に小さく固定 */
-#admin-controls {
-    position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 360px;
-    background: rgba(255, 255, 255, 0.95);
-    border: var(--border-style);
-    padding: 10px;
-    font-size: 11px;
-    text-align: left;
-    z-index: 40;
-}
-.setup-zone { border: 1px dashed #000; padding: 6px; margin: 6px 0; background: #fff; }
-.admin-save { background: #000000; color: #ffffff; width: 100%; margin-top: 6px; padding: 6px; font-size: 12px;}
-.admin-sub { font-size: 10px; padding: 4px 8px; background: #ffffff; }
-
+/* 非表示キャンバス */
 #hidden-canvas { display: none; }
+
