@@ -162,17 +162,33 @@ function startGame() {
 }
 
 function openAdmin(mode) {
-    document.getElementById('settingsContent').classList.remove('open');
+   document.getElementById('settingsContent').classList.remove('open');
     isAdminMode = true; adminSubMode = mode; setupStep = 'none';
     pageTitle.innerText = mode === 'imageMode' ? "画像2枚登録" : "なぞりお手本登録";
-    document.getElementById('setup-status').innerText = "キャンバス上をタップして位置を指定してください";
+    
+    // ドロワー内のステータステキストを初期化
+    document.getElementById('setup-status').innerText = "位置を指定してください";
+    
     setMode('draw');
-    adminControls.style.display = 'block';
+    
+    // パネルの表示切り替え
+    document.getElementById('admin-controls').style.display = 'block';
     ctrlImageMode.style.display = mode === 'imageMode' ? 'block' : 'none';
     ctrlTraceMode.style.display = mode === 'traceMode' ? 'block' : 'none';
-    menuPage.classList.remove('active'); gamePage.classList.add('active');
+    
+    // 画面切り替え
+    menuPage.classList.remove('active'); 
+    gamePage.classList.add('active');
+    
     scale = 1; panX = 0; panY = 0; updateTransform();
-    setTimeout(adjustCanvasSize, 50); setTimeout(resetCanvas, 60);
+    
+    setTimeout(adjustCanvasSize, 50); 
+    setTimeout(resetCanvas, 60);
+
+    // ✨ 追加：管理者画面を開いたら、設定しやすいように自動でメニュー（ドロワー）を開く
+    setTimeout(() => {
+        document.getElementById('drawer-menu').classList.add('open');
+    }, 200);
 }
 
 function goBackMenu() { gamePage.classList.remove('active'); menuPage.classList.add('active'); }
