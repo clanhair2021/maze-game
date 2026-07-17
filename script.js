@@ -191,7 +191,7 @@ function openAdmin(mode) {
     }, 200);
 }
 
-function goBackMenu() { stopMazeTimer();gamePage.classList.remove('active'); menuPage.classList.add('active'); }
+function goBackMenu() { stopMazeTimer();document.getElementById('timer-display').innerText = "TIME: 00:00.00";gamePage.classList.remove('active'); menuPage.classList.add('active'); }
 function resetCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); strokeHistory = []; currentStroke = []; hasJudged = false; redrawAllHistory(); }
 
 /* ==========================================
