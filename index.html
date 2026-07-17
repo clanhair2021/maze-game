@@ -3,56 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>美容室CLan 迷路ゲーム</title>
+    <title>美容室CLanからの挑戦状</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <button id="floating-menu-btn" onclick="toggleFullscreenMode(false)">メニューを開く</button>
-
     <div id="menu-page" class="page active">
-        <h1>美容室CLan 迷路ゲーム</h1>
-        <hr>
-        <h3>ゲームを遊ぶ</h3>
-        <button onclick="startGame()">迷路に挑戦する</button>
-        <br><br>
-        <div id="admin-menu-section">
-            <h3>管理者メニュー</h3>
-            <button class="admin-btn" onclick="openAdmin('imageMode')">方法A：画像2枚で登録</button>
-            <br>
-            <button class="admin-btn" style="margin-top:10px;" onclick="openAdmin('traceMode')">方法B：画像1枚となぞり登録</button>
-        </div>
+        <header class="menu-header">
+            <h1>美容室CLanからの挑戦状</h1>
+            
+            <div class="settings-menu">
+                <button class="settings-trigger" onclick="toggleSettings()">設定</button>
+                <div class="settings-content" id="settingsContent">
+                    <div class="settings-item">
+                        <label>方法A：画像2枚で登録</label>
+                        <button class="settings-btn" onclick="openAdmin('imageMode')">開く</button>
+                    </div>
+                    <div class="settings-item" style="margin-top: 10px;">
+                        <label>方法B：なぞり登録</label>
+                        <button class="settings-btn" onclick="openAdmin('traceMode')">開く</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="stage-container">
+            <div class="stage-card" onclick="startGame()">
+                <div class="stage-image-box">
+                    <div class="image-placeholder">STAGE 1</div>
+                </div>
+                <div class="stage-info">
+                    <div class="stage-number">Stage 01</div>
+                    <div class="stage-title">CLanからの最初の迷路</div>
+                </div>
+            </div>
+            </main>
     </div>
 
     <div id="game-page" class="page">
         <div id="ui-header">
             <h2 id="page-title">迷路画面</h2>
-            <button onclick="goBackMenu()">メニューに戻る</button>
-            <button class="undo-btn" onclick="undoLastLine()">1つ戻る</button>
-            <button onclick="resetCanvas()">全部引き直す</button>
+            <div class="btn-group">
+                <button onclick="goBackMenu()">メニューに戻る</button>
+                <button class="undo-btn" onclick="undoLastLine()">1つ戻る</button>
+                <button onclick="resetCanvas()">全部引き直す</button>
+            </div>
             
-            <div style="margin: 5px 0;">
+            <div class="btn-group" style="margin-top: 5px;">
                 <button id="btn-draw" class="mode-btn selected" onclick="setMode('draw')">お絵描き</button>
                 <button id="btn-zoom" class="mode-btn" onclick="setMode('zoom')">拡大移動</button>
-                <button class="wide-btn optional-btn" onclick="toggleFullscreenMode(true)">画面を広く使う</button>
             </div>
         </div>
 
         <div id="admin-controls" style="display: none;">
             <div id="ctrl-image-mode">
                 <p>1. 問題の画像：<input type="file" id="img-question" accept="image/*"></p>
-                <p>2. 答えの画像(赤線入り)：<input type="file" id="img-answer" accept="image/*"></p>
+                <p>2. 答えの画像：<input type="file" id="img-answer" accept="image/*"></p>
                 <div class="setup-zone">
-                    <span id="setup-status">キャンバス上をタップして位置を指定してください</span><br>
-                    <button class="admin-sub" style="background:#0275d8;" onclick="setSetupStep('start')">スタート位置を指定する</button>
-                    <button class="admin-sub" style="background:#d9534f;" onclick="setSetupStep('goal')">ゴール位置を指定する</button>
+                    <span id="setup-status">位置を指定してください</span><br>
+                    <button class="admin-sub" onclick="setSetupStep('start')">スタート位置を指定</button>
+                    <button class="admin-sub" onclick="setSetupStep('goal')">ゴール位置を指定</button>
                 </div>
-                <button class="admin-sub" onclick="saveImageModeData()">設定をまとめて保存する</button>
+                <button class="admin-save" onclick="saveImageModeData()">設定をまとめて保存</button>
             </div>
             <div id="ctrl-trace-mode" style="display:none;">
                 <p>1. 迷路画像を選択：<input type="file" id="img-single" accept="image/*"></p>
                 <p>2. スタートからゴールまでお手本をなぞってください。</p>
-                <button class="admin-sub" onclick="saveTraceModeData()">なぞったルートを保存する</button>
+                <button class="admin-save" onclick="saveTraceModeData()">なぞったルートを保存</button>
             </div>
         </div>
 
