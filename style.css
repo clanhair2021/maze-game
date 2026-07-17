@@ -350,3 +350,15 @@ button:hover {
 /* 非表示キャンバス */
 #hidden-canvas { display: none; }
 
+/* ⏱️ 画面上部中央に浮かぶタイマーのデザイン */
+#timer-display {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9); /* 少し透ける白背景 */
+    border: var(--border-style);          /* 黒い枠線 */
+    padding: 6px 16px;                    /* 内側の余白 */
+    z-index: 50;                          /* 迷路の画像より上に重ねる */
+    letter-spacing: 1px;                  /* 文字の間隔を少し広げる */
+}
