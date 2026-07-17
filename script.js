@@ -331,31 +331,58 @@ function checkRealtimeGoalTouch(x, y) {
 }
 
 function checkAnswerColor() {
-    hiddenCanvas.width = canvas.width; hiddenCanvas.height = canvas.height;
+    hiddenCanvas.width = canvas.width; 
+    hiddenCanvas.height = canvas.height;
     hiddenCtx.drawImage(imgAnswerObj, 0, 0, canvas.width, canvas.height);
+    
     const allPts = getAllPoints();
+    
+    // 1. スタート位置のチェック
     if (mazeStartPoint && allPts.length > 0) {
         if (Math.hypot(allPts[0].x - mazeStartPoint.x, allPts[0].y - mazeStartPoint.y) > CONFIG.startTolerance) {
-            alert("残念！スタート地点から正しく描き始められていないようです。"); hasJudged = false; return;
+            alert("残念！スタート地点から正しく描き始められていないようです。"); 
+            hasJudged = false; 
+            return;
         }
     }
-    let crossWallDetected = false;
+    
+    // 2. 赤色ルートのなぞり率チェック
+    let totalCheckPoints = 0;
+    let onRedRouteCount = 0;
+
     for (let stroke of strokeHistory) {
-        if (stroke.length < 2) continue;
-        for (let i = 0; i < stroke.length - 1; i++) {
-            let pt1 = stroke[i]; let pt2 = stroke[i+1];
-            for(let k=0; k<=5; k++) {
-                let ratio = k / 5;
-                let checkX = pt1.x + (pt2.x - pt1.x) * ratio; let checkY = pt1.y + (pt2.y - pt1.y) * ratio;
-                const pixel = hiddenCtx.getImageData(Math.floor(checkX), Math.floor(checkY), 1, 1).data;
-                if (pixel[0] < 60 && pixel[1] < 60 && pixel[2] < 60 && pixel[3] > 200) { crossWallDetected = true; break; }
+        if (stroke.length === 0) continue;
+        for (let i = 0; i < stroke.length; i++) {
+            let pt = stroke[i];
+            totalCheckPoints++; // プレイヤーが引いた点の総数
+            
+            // その座標の「答え画像」のピクセル色を取得
+            const pixel = hiddenCtx.getImageData(Math.floor(pt.x), Math.floor(pt.y), 1, 1).data;
+            const r = pixel[0]; // 赤み
+            const g = pixel[1]; // 緑み
+            const b = pixel[2]; // 青み
+            const a = pixel[3]; // 透明度
+
+            // ✨ 判定基準：赤みが強くて（Rが150以上）、緑と青が低い（GとBが100未満）かつ透明じゃない
+            if (r > 150 && g < 100 && b < 100 && a > 200) {
+                onRedRouteCount++; // 正解ルートに乗っている点をカウント
             }
-            if (crossWallDetected) break;
         }
-        if (crossWallDetected) break;
     }
-    if (crossWallDetected) { alert("残念！途中で壁を跨いでしまっています。\nメニューの「1つ戻る」ボタンでやり直せます！"); hasJudged = false; }
-    else { stopMazeTimer();alert("正解！おめでとうございます！"); resetCanvas(); goBackMenu(); }
+
+    // プレイヤーが引いた線のうち、何％が赤ルートの上だったか計算
+    const traceAccuracy = totalCheckPoints > 0 ? (onRedRouteCount / totalCheckPoints) : 0;
+
+    // お手本モードと同じく「80%以上」赤ルートをなぞれていれば合格！
+    if (traceAccuracy >= 0.80) { 
+        stopMazeTimer();
+        alert("正解！おめでとうございます！"); 
+        resetCanvas(); 
+        goBackMenu(); 
+    } else { 
+        alert("残念！正しい赤色のルートを大きく外れてしまっているようです。\nメニューの「1つ戻る」ボタンでやり直せますよ！"); 
+        hasJudged = false; 
+    }
 }
 
 function checkAnswerTrace() {
