@@ -380,7 +380,7 @@ function checkAnswerColor() {
         resetCanvas(); 
         goBackMenu(); 
     } else { 
-        alert("残念！正しい赤色のルートを大きく外れてしまっているようです。\nメニューの「1つ戻る」ボタンでやり直せますよ！"); 
+        alert("残念！正しいルートを大きく外れてしまっているようです。\nメニューの「1つ戻る」ボタンでやり直せますよ！"); 
         hasJudged = false; 
     }
 }
