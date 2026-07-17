@@ -1,8 +1,8 @@
 /* ==========================================
-   ⚙️ システム設定（線の色や判定の広さ）
+   ⚙️ システム設定
    ========================================== */
 const CONFIG = {
-    userStrokeColor: "rgba(0, 0, 0, 0.6)",   /* プレイヤーが引く線の色（黒の半透明） */
+    userStrokeColor: "rgba(0, 0, 0, 0.6)",   /* プレイヤーが引く線（黒の半透明） */
     adminStrokeColor: "rgba(0, 0, 0, 0.4)",  /* 管理者がお手本をなぞる時の色 */
     strokeWidth: 5,                          /* 線の太さ */
     goalTolerance: 30,                       /* ゴール位置判定の甘さ */
@@ -41,7 +41,7 @@ let judgeSystemType = 'trace'; let savedRoute = [];
 let mazeStartPoint = null; let mazeGoalPoint = null; let setupStep = 'none';
 
 /* ==========================================
-   初期化・画像読み込み
+   初期化・画像読み込みと自動フィット
    ========================================== */
 window.onload = function() {
     const localImage = localStorage.getItem('maze_image');
@@ -57,6 +57,9 @@ window.onload = function() {
     if (judgeSystemType === 'color' && localAnsImg) { imgAnswerObj.src = localAnsImg; }
     if (localStart) mazeStartPoint = JSON.parse(localStart);
     if (localGoal) mazeGoalPoint = JSON.parse(localGoal);
+
+    // 画面サイズが変化した時も自動で迷路サイズをリサイズフィットさせる
+    window.addEventListener('resize', adjustCanvasSize);
 };
 
 mazeBg.onload = function() {
@@ -64,10 +67,41 @@ mazeBg.onload = function() {
     adjustCanvasSize();
 };
 
+/* 
+  画面の横幅・縦幅に合わせて、迷路の画像が画面いっぱいに「アスペクト比を維持して最大表示」
+  されるようにキャンバスの大きさを1ピクセル単位で再計算します。
+*/
 function adjustCanvasSize() {
-    const width = mazeBg.clientWidth; const height = mazeBg.clientHeight;
-    canvas.width = width; canvas.height = height;
-    canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
+    if (!mazeBg.src || mazeBg.naturalWidth === 0) return;
+
+    const screenWidth = container.clientWidth;
+    const screenHeight = container.clientHeight;
+
+    const imgWidth = mazeBg.naturalWidth;
+    const imgHeight = mazeBg.naturalHeight;
+
+    let targetWidth = screenWidth;
+    let targetHeight = screenHeight;
+
+    const screenRatio = screenWidth / screenHeight;
+    const imgRatio = imgWidth / imgHeight;
+
+    if (imgRatio > screenRatio) {
+        // 画像の方が横長の場合
+        targetWidth = screenWidth;
+        targetHeight = screenWidth / imgRatio;
+    } else {
+        // 画像の方が縦長の場合
+        targetHeight = screenHeight;
+        targetWidth = screenHeight * imgRatio;
+    }
+
+    // キャンバスの実解像度とCSS上の表示解像度を完全に一致させ、ボケを防ぐ
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    canvas.style.width = targetWidth + 'px';
+    canvas.style.height = targetHeight + 'px';
+
     redrawAllHistory(); 
 }
 
@@ -83,28 +117,44 @@ function setMode(mode) {
 }
 
 /* ==========================================
-   メニュー開閉・画面遷移
+   🚪 ドロワーメニュー & 設定の開閉
    ========================================== */
+function toggleDrawer() {
+    document.getElementById('drawer-menu').classList.toggle('open');
+}
+
 function toggleSettings() {
     document.getElementById('settingsContent').classList.toggle('open');
 }
 
-// メニューの外をタップしたら閉じる
-document.addEventListener('click', function(e) {
-    const menu = document.querySelector('.settings-menu');
-    if (!menu.contains(e.target)) {
-        document.getElementById('settingsContent').classList.remove('open');
+// メニューの外側を触った時に自動でドロワーを閉じる親切設計
+document.addEventListener('touchstart', function(e) {
+    const drawer = document.getElementById('drawer-menu');
+    const toggleBtn = document.getElementById('menu-toggle');
+    if (drawer.classList.contains('open') && !drawer.contains(e.target) && e.target !== toggleBtn) {
+        drawer.classList.remove('open');
     }
 });
 
+document.addEventListener('click', function(e) {
+    const menu = document.querySelector('.settings-menu');
+    if (menu && !menu.contains(e.target)) {
+        const setCont = document.getElementById('settingsContent');
+        if(setCont) setCont.classList.remove('open');
+    }
+});
+
+/* ==========================================
+   ゲーム状態遷移
+   ========================================== */
 function setSetupStep(step) {
     setupStep = step;
-    document.getElementById('setup-status').innerText = step === 'start' ? "スタート地点を1回タップしてください" : "ゴール地点を1回タップしてください";
+    document.getElementById('setup-status').innerText = step === 'start' ? "スタート位置を1回タップしてください" : "ゴール位置を1回タップしてください";
 }
 
 function startGame() {
     isAdminMode = false; setupStep = 'none';
-    pageTitle.innerText = "美容室CLanからの挑戦状";
+    pageTitle.innerText = "CLan迷路ゲーム";
     setMode('draw'); adminControls.style.display = 'none';
     menuPage.classList.remove('active'); gamePage.classList.add('active');
     scale = 1; panX = 0; panY = 0; updateTransform();
@@ -129,7 +179,7 @@ function goBackMenu() { gamePage.classList.remove('active'); menuPage.classList.
 function resetCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); strokeHistory = []; currentStroke = []; hasJudged = false; redrawAllHistory(); }
 
 /* ==========================================
-   描画・タッチイベント
+   描画・タッチイベント処理
    ========================================== */
 function redrawAllHistory() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -281,7 +331,7 @@ function checkAnswerColor() {
         }
         if (crossWallDetected) break;
     }
-    if (crossWallDetected) { alert("残念！途中で壁を跨いでしまっています。\n「1つ戻る」ボタンでやり直せます！"); hasJudged = false; }
+    if (crossWallDetected) { alert("残念！途中で壁を跨いでしまっています。\nメニューの「1つ戻る」ボタンでやり直せます！"); hasJudged = false; }
     else { alert("正解！おめでとうございます！"); resetCanvas(); goBackMenu(); }
 }
 
@@ -299,5 +349,5 @@ function checkAnswerTrace() {
         }
     }
     if ((maxReachedIndex / savedRoute.length) >= 0.80) { alert("正解！おめでとうございます！"); resetCanvas(); goBackMenu(); }
-    else { alert("残念！正しいルートを大きく外れてしまっているようです。\n「1つ戻る」ボタンでやり直せますよ！"); hasJudged = false; }
+    else { alert("残念！正しいルートを大きく外れてしまっているようです。\nメニューの「1つ戻る」ボタンでやり直せますよ！"); hasJudged = false; }
 }
