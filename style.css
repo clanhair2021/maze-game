@@ -81,6 +81,7 @@ button:hover {
     padding: 4px 8px;
     font-size: 12px;
     font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", 'CLanCustomFont', sans-serif;
+    border: none; 
 }
 .settings-content {
     display: none;
@@ -160,8 +161,8 @@ button:hover {
     z-index: 50; /* 迷路より上に配置 */
     padding: 6px 12px;
     font-size: 12px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1.5px solid #000000;
+    background: rgba(255, 255, 255, 0.9)
+    border: none; 
 }
 
 /* 🧭 左側からスライドインするドロワー（引き出し）メニュー（スクロール対応最新版） */
