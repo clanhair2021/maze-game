@@ -13,7 +13,6 @@
         <header class="menu-header">
             <h1>美容室CLanからの挑戦状</h1>
             
-            <!-- 右上の隠し設定メニュー -->
             <div class="settings-menu">
                 <button class="settings-trigger" onclick="toggleSettings()">設定</button>
                 <div class="settings-content" id="settingsContent">
@@ -29,7 +28,6 @@
             </div>
         </header>
 
-        <!-- 下にひとつずつ置かれていくステージ一覧 -->
         <main class="stage-container">
             <div class="stage-card" onclick="startGame()">
                 <div class="stage-image-box">
@@ -43,54 +41,71 @@
         </main>
     </div>
 
-    <!-- 2. ゲーム・登録共通画面（迷路最大化バージョン） -->
+    <!-- 2. ゲーム・登録共通画面 -->
     <div id="game-page" class="page">
         
-        <!-- 左上の目立たないメニュー開閉ボタン -->
+        <!-- 左上のメニュー開閉ボタン -->
         <button id="menu-toggle" onclick="toggleDrawer()">MENU</button>
 
-        <!-- スライド式操作パネル（普段は隠れています） -->
+        <!-- スライド式操作パネル（ここに管理用コントロールも統合しました） -->
         <div id="drawer-menu">
             <div class="drawer-header">
                 <h3 id="page-title">迷路メニュー</h3>
                 <button class="close-drawer" onclick="toggleDrawer()">×</button>
             </div>
             
-            <div class="drawer-section">
-                <button class="drawer-btn" onclick="goBackMenu(); toggleDrawer();">メニューに戻る</button>
-                <button class="drawer-btn undo-btn" onclick="undoLastLine(); toggleDrawer();">1つ戻る</button>
-                <button class="drawer-btn" onclick="resetCanvas(); toggleDrawer();">全部引き直す</button>
-            </div>
-            
-            <div class="drawer-section">
-                <p class="section-label">操作モード</p>
-                <div class="mode-toggle-group">
-                    <button id="btn-draw" class="mode-btn selected" onclick="setMode('draw'); toggleDrawer();">お絵描き</button>
-                    <button id="btn-zoom" class="mode-btn" onclick="setMode('zoom'); toggleDrawer();">拡大移動</button>
+            <!-- スクロール可能なコンテンツエリア -->
+            <div class="drawer-scroll-area">
+                <div class="drawer-section">
+                    <button class="drawer-btn" onclick="goBackMenu(); toggleDrawer();">メニューに戻る</button>
+                    <button class="drawer-btn undo-btn" onclick="undoLastLine(); toggleDrawer();">1つ戻る</button>
+                    <button class="drawer-btn" onclick="resetCanvas(); toggleDrawer();">全部引き直す</button>
+                </div>
+                
+                <div class="drawer-section">
+                    <p class="section-label">操作モード</p>
+                    <div class="mode-toggle-group">
+                        <button id="btn-draw" class="mode-btn selected" onclick="setMode('draw'); toggleDrawer();">お絵描き</button>
+                        <button id="btn-zoom" class="mode-btn" onclick="setMode('zoom'); toggleDrawer();">拡大移動</button>
+                    </div>
+                </div>
+
+                <!-- 🛠️ 管理者用コントロールパネル（ドロワー内に内包） -->
+                <div id="admin-controls" class="drawer-section" style="display: none; border-top: 2px dashed #000; padding-top: 15px; margin-top: 15px;">
+                    <p class="section-label" style="color: #d9534f;">【管理者設定】</p>
+                    
+                    <!-- 方法Aの入力欄 -->
+                    <div id="ctrl-image-mode">
+                        <div class="admin-input-group">
+                            <label>1. 問題画像を選択</label>
+                            <input type="file" id="img-question" accept="image/*">
+                        </div>
+                        <div class="admin-input-group">
+                            <label>2. 答え（壁黒）画像を選択</label>
+                            <input type="file" id="img-answer" accept="image/*">
+                        </div>
+                        <div class="setup-zone">
+                            <span id="setup-status">位置を指定してください</span>
+                            <button class="admin-sub" onclick="setSetupStep('start')">スタート位置を指定</button>
+                            <button class="admin-sub" onclick="setSetupStep('goal')">ゴール位置を指定</button>
+                        </div>
+                        <button class="admin-save" onclick="saveImageModeData()">設定をまとめて保存</button>
+                    </div>
+
+                    <!-- 方法Bの入力欄 -->
+                    <div id="ctrl-trace-mode" style="display:none;">
+                        <div class="admin-input-group">
+                            <label>1. 迷路画像を選択</label>
+                            <input type="file" id="img-single" accept="image/*">
+                        </div>
+                        <p style="font-size: 11px; margin-bottom: 10px;">2. メニューを閉じ、スタートからゴールまでお手本をなぞってください。</p>
+                        <button class="admin-save" onclick="saveTraceModeData()">なぞったルートを保存</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 管理者用コントロールパネル（設定から開いたときだけ画面下部に控えめに表示） -->
-        <div id="admin-controls" style="display: none;">
-            <div id="ctrl-image-mode">
-                <p>1. 問題画像：<input type="file" id="img-question" accept="image/*"></p>
-                <p>2. 答え画像：<input type="file" id="img-answer" accept="image/*"></p>
-                <div class="setup-zone">
-                    <span id="setup-status">位置を指定してください</span><br>
-                    <button class="admin-sub" onclick="setSetupStep('start')">スタート位置を指定</button>
-                    <button class="admin-sub" onclick="setSetupStep('goal')">ゴール位置を指定</button>
-                </div>
-                <button class="admin-save" onclick="saveImageModeData()">設定をまとめて保存</button>
-            </div>
-            <div id="ctrl-trace-mode" style="display:none;">
-                <p>1. 迷路画像を選択：<input type="file" id="img-single" accept="image/*"></p>
-                <p>2. スタートからゴールまでお手本をなぞってください。</p>
-                <button class="admin-save" onclick="saveTraceModeData()">なぞったルートを保存</button>
-            </div>
-        </div>
-
-        <!-- 迷路表示エリア（スマートフォンの画面いっぱいに広がるよう調整） -->
+        <!-- 迷路表示エリア（完全全画面） -->
         <div id="canvas-container">
             <div id="maze-wrapper">
                 <img id="maze-bg" alt="迷路の背景">
