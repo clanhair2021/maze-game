@@ -80,6 +80,7 @@ button:hover {
 .settings-trigger {
     padding: 4px 8px;
     font-size: 12px;
+    font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", 'CLanCustomFont', sans-serif;
 }
 .settings-content {
     display: none;
