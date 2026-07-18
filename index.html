@@ -65,36 +65,46 @@
 
                 <!-- 🛠️ 管理者用コントロールパネル（ドロワー内に内包） -->
                 <div id="admin-controls" class="drawer-section" style="display: none; border-top: 2px dashed #000; padding-top: 15px; margin-top: 15px;">
-                    <p class="section-label" style="color: #d9534f;">【管理者設定】</p>
-                    
-                    <!-- 方法Aの入力欄 -->
-                    <div id="ctrl-image-mode">
-                        <div class="admin-input-group">
-                            <label>1. 問題画像を選択</label>
-                            <input type="file" id="img-question" accept="image/*">
-                        </div>
-                        <div class="admin-input-group">
-                            <label>2. 答え（壁黒）画像を選択</label>
-                            <input type="file" id="img-answer" accept="image/*">
-                        </div>
-                        <div class="setup-zone">
-                            <span id="setup-status">位置を指定してください</span>
-                            <button class="admin-sub" onclick="setSetupStep('start')">スタート位置を指定</button>
-                            <button class="admin-sub" onclick="setSetupStep('goal')">ゴール位置を指定</button>
-                        </div>
-                        <button class="admin-save" onclick="saveImageModeData()">設定をまとめて保存</button>
-                    </div>
+    <p class="section-label" style="color: #d9534f;">【管理者設定】</p>
+    
+    <!-- 方法Aの入力欄 -->
+    <div id="ctrl-image-mode">
+        <!-- 💡 追記：ステージ名の入力欄 -->
+        <div class="admin-input-group">
+            <label>0. ステージ名を入力</label>
+            <input type="text" id="stage-title-input-a" placeholder="例：CLanからの最初の迷路" style="width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 5px;">
+        </div>
+        <div class="admin-input-group">
+            <label>1. 問題画像を選択</label>
+            <input type="file" id="img-question" accept="image/*">
+        </div>
+        <div class="admin-input-group">
+            <label>2. 答え（壁黒）画像を選択</label>
+            <input type="file" id="img-answer" accept="image/*">
+        </div>
+        <div class="setup-zone">
+            <span id="setup-status">位置を指定してください</span>
+            <button class="admin-sub" onclick="setSetupStep('start')">スタート位置を指定</button>
+            <button class="admin-sub" onclick="setSetupStep('goal')">ゴール位置を指定</button>
+        </div>
+        <button class="admin-save" onclick="saveImageModeData()">設定をまとめて保存</button>
+    </div>
 
-                    <!-- 方法Bの入力欄 -->
-                    <div id="ctrl-trace-mode" style="display:none;">
-                        <div class="admin-input-group">
-                            <label>1. 迷路画像を選択</label>
-                            <input type="file" id="img-single" accept="image/*">
-                        </div>
-                        <p style="font-size: 11px; margin-bottom: 10px;">2. メニューを閉じ、スタートからゴールまでお手本をなぞってください。</p>
-                        <button class="admin-save" onclick="saveTraceModeData()">なぞったルートを保存</button>
-                    </div>
-                </div>
+    <!-- 方法Bの入力欄 -->
+    <div id="ctrl-trace-mode" style="display:none;">
+        <!-- 💡 追記：ステージ名の入力欄 -->
+        <div class="admin-input-group">
+            <label>0. ステージ名を入力</label>
+            <input type="text" id="stage-title-input-b" placeholder="例：裏・スピード迷路" style="width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 5px;">
+        </div>
+        <div class="admin-input-group">
+            <label>1. 迷路画像を選択</label>
+            <input type="file" id="img-single" accept="image/*">
+        </div>
+        <p style="font-size: 11px; margin-bottom: 10px;">2. メニューを閉じ、スタートからゴールまでお手本をなぞってください。</p>
+        <button class="admin-save" onclick="saveTraceModeData()">なぞったルートを保存</button>
+    </div>
+</div>
             </div>
         </div>
 
