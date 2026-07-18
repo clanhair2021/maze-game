@@ -487,3 +487,90 @@ function adminSelectStage(stageNumber) {
     resetCanvas();
     alert(`編集対象を ステージ ${stageNumber} に切り替えました。画像をアップロードして登録してください。`);
 }
+/* ==========================================
+   ✨ 【追加】ステージリストの自動組み立てと新規追加
+   ========================================== */
+
+// ページ読み込み時に、保存されているステージをメニューに一覧表示する
+const作られた初期onload = window.onload;
+window.onload = function() {
+    if (typeof作られた初期onload === 'function') 作られた初期onload();
+    refreshStageMenu(); // メニュー画面の表示を最新にする
+};
+
+// メニュー画面のステージ一覧を自動生成する関数
+function refreshStageMenu() {
+    const container = document.querySelector('.stage-container');
+    if (!container) return;
+
+    // いったんメニューの中身をきれいにする
+    container.innerHTML = "";
+
+    // ローカルストレージを探索して、登録されている最大のステージ番号を見つける
+    let maxStage = 1;
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const match = key.match(/^stage_(\d+)_image$/);
+        if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxStage) maxStage = num;
+        }
+    }
+
+    // 登録されているステージ（1から最大番号まで）をループで画面に並べる
+    for (let i = 1; i <= maxStage; i++) {
+        // 各ステージに画像が登録されているかチェック
+        const hasImg = localStorage.getItem(`stage_${i}_image`);
+        const placeholderText = hasImg ? `STAGE ${i}` : `未登録`;
+        const titleText = hasImg ? `CLanの迷路 - ステージ ${i}` : `（未登録のステージです）`;
+
+        const card = document.createElement('div');
+        card.className = 'stage-card';
+        card.setAttribute('onclick', `startGame(${i})`);
+        card.innerHTML = `
+            <div class="stage-image-box">
+                <div class="image-placeholder">${placeholderText}</div>
+            </div>
+            <div class="stage-info">
+                <div class="stage-number">Stage ${String(i).padStart(2, '0')}</div>
+                <div class="stage-title">${titleText}</div>
+            </div>
+        `;
+        container.appendChild(card);
+    }
+
+    // ➕ 1番最後に「新しいステージを追加する」ためのカードを置く
+    const addCard = document.createElement('div');
+    addCard.className = 'stage-card';
+    addCard.style.borderStyle = 'dashed';
+    addCard.style.background = '#fafafa';
+    // クリックされたら、現在の最大ステージ数 + 1 の番号で管理者画面を開く
+    addCard.setAttribute('onclick', `addNewStageAction(${maxStage + 1})`);
+    addCard.innerHTML = `
+        <div class="stage-image-box" style="border-style: dashed;">
+            <div class="image-placeholder" style="font-size: 20px;">＋</div>
+        </div>
+        <div class="stage-info">
+            <div class="stage-number" style="color: #666;">NEW STAGE</div>
+            <div class="stage-title" style="color: #666;">新しいステージを追加する</div>
+        </div>
+    `;
+    container.appendChild(addCard);
+}
+
+// 「＋ 新しいステージを追加する」を押したときの処理
+function addNewStageAction(nextStageNumber) {
+    // 新しいステージ番号のデータを読み込ませる（当然最初は空っぽになります）
+    loadStageData(nextStageNumber);
+    
+    // そのまま「画像2枚登録」の管理者モードでゲーム画面を開く
+    // ※もし「なぞりお手本」をメインで使う場合は、ここを 'traceMode' に変えてください
+    openAdmin('imageMode'); 
+}
+
+// 既存の goBackMenu（メニューに戻る処理）も、戻った瞬間にリストが更新されるように上書き拡張
+const 元のgoBackMenu = goBackMenu;
+goBackMenu = function() {
+    if (typeof 元のgoBackMenu === 'function') 元のgoBackMenu();
+    refreshStageMenu(); // メニューに戻ったらリストを最新に更新！
+};
