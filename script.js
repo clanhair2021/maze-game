@@ -39,29 +39,47 @@ let startTouchDistance = 0; let lastTouchX = 0; let lastTouchY = 0;
 let strokeHistory = []; let currentStroke = []; 
 let judgeSystemType = 'trace'; let savedRoute = [];
 let mazeStartPoint = null; let mazeGoalPoint = null; let setupStep = 'none';
+let currentStageNumber = 1;
 
 /* ==========================================
    初期化・画像読み込みと自動フィット
    ========================================== */
 window.onload = function() {
-    const localImage = localStorage.getItem('maze_image');
-    const localRoute = localStorage.getItem('maze_route');
-    const localSystem = localStorage.getItem('judge_system');
-    const localAnsImg = localStorage.getItem('maze_answer_image');
-    const localStart = localStorage.getItem('maze_start_pt');
-    const localGoal = localStorage.getItem('maze_goal_pt');
+    // 起動時はまずステージ1のデータを読み込む
+    loadStageData(1);
 
+    // 画面サイズが変化した時も自動で迷路サイズをリサイズフィットさせる
+    window.addEventListener('resize', adjustCanvasSize);
+};
+
+/* ✨ 新設：指定されたステージのデータをローカルストレージから読み込む関数 */
+function loadStageData(stageNumber) {
+    currentStageNumber = stageNumber;
+
+    const localImage = localStorage.getItem(`stage_${stageNumber}_image`);
+    const localRoute = localStorage.getItem(`stage_${stageNumber}_route`);
+    const localSystem = localStorage.getItem(`stage_${stageNumber}_judge_system`);
+    const localAnsImg = localStorage.getItem(`stage_${stageNumber}_answer_image`);
+    const localStart = localStorage.getItem(`stage_${stageNumber}_start_pt`);
+    const localGoal = localStorage.getItem(`stage_${stageNumber}_goal_pt`);
+
+    // いったんデータをリセット
+    mazeBg.src = "";
+    mazeBg.style.display = 'none';
+    savedRoute = [];
+    imgAnswerObj.src = "";
+    mazeStartPoint = null;
+    mazeGoalPoint = null;
+    judgeSystemType = 'trace'; // デフォルト
+
+    // 選択されたステージのデータを反映
     if (localImage) { mazeBg.src = localImage; mazeBg.style.display = 'block'; }
     if (localSystem) { judgeSystemType = localSystem; }
     if (judgeSystemType === 'trace' && localRoute) { savedRoute = JSON.parse(localRoute); }
     if (judgeSystemType === 'color' && localAnsImg) { imgAnswerObj.src = localAnsImg; }
     if (localStart) mazeStartPoint = JSON.parse(localStart);
     if (localGoal) mazeGoalPoint = JSON.parse(localGoal);
-
-    // 画面サイズが変化した時も自動で迷路サイズをリサイズフィットさせる
-    window.addEventListener('resize', adjustCanvasSize);
-};
-
+}
 mazeBg.onload = function() {
     isLandscape = mazeBg.naturalWidth > mazeBg.naturalHeight;
     adjustCanvasSize();
@@ -152,9 +170,14 @@ function setSetupStep(step) {
     document.getElementById('setup-status').innerText = step === 'start' ? "スタート位置を1回タップしてください" : "ゴール位置を1回タップしてください";
 }
 
-function startGame() {
+function startGame(stageNumber) {
+    // 引数がない場合は、現在のステージ番号のままにする（予備用の処理）
+    if (stageNumber) {
+        loadStageData(stageNumber);
+    }
+    
     isAdminMode = false; setupStep = 'none';
-    pageTitle.innerText = "CLan迷路ゲーム";
+    pageTitle.innerText = `CLan迷路ゲーム - Stage ${currentStageNumber}`; // ステージ名を表示に反映
     setMode('draw'); adminControls.style.display = 'none';
     menuPage.classList.remove('active'); gamePage.classList.add('active');
     scale = 1; panX = 0; panY = 0; updateTransform();
@@ -162,21 +185,17 @@ function startGame() {
 }
 
 function openAdmin(mode) {
-   document.getElementById('settingsContent').classList.remove('open');
+    document.getElementById('settingsContent').classList.remove('open');
     isAdminMode = true; adminSubMode = mode; setupStep = 'none';
-    pageTitle.innerText = mode === 'imageMode' ? "画像2枚登録" : "なぞりお手本登録";
+    pageTitle.innerText = mode === 'imageMode' ? `画像2枚登録 (Stage ${currentStageNumber})` : `なぞりお手本登録 (Stage ${currentStageNumber})`;
     
-    // ドロワー内のステータステキストを初期化
     document.getElementById('setup-status').innerText = "位置を指定してください";
-    
     setMode('draw');
     
-    // パネルの表示切り替え
     document.getElementById('admin-controls').style.display = 'block';
     ctrlImageMode.style.display = mode === 'imageMode' ? 'block' : 'none';
     ctrlTraceMode.style.display = mode === 'traceMode' ? 'block' : 'none';
     
-    // 画面切り替え
     menuPage.classList.remove('active'); 
     gamePage.classList.add('active');
     
@@ -185,7 +204,6 @@ function openAdmin(mode) {
     setTimeout(adjustCanvasSize, 50); 
     setTimeout(resetCanvas, 60);
 
-    // ✨ 追加：管理者画面を開いたら、設定しやすいように自動でメニュー（ドロワー）を開く
     setTimeout(() => {
         document.getElementById('drawer-menu').classList.add('open');
     }, 200);
@@ -287,23 +305,36 @@ document.getElementById('img-single').addEventListener('change', (e) => { loadIm
 document.getElementById('img-answer').addEventListener('change', (e) => {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = function(event) { imgAnswerObj.src = event.target.result; localStorage.setItem('maze_answer_image', event.target.result); };
+    reader.onload = function(event) { 
+        imgAnswerObj.src = event.target.result; 
+        // 💡 ステージごとのキー名で保存
+        localStorage.setItem(`stage_${currentStageNumber}_answer_image`, event.target.result); 
+    };
     reader.readAsDataURL(file);
 });
-
 function loadImgToBg(file) {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = function(event) { mazeBg.src = event.target.result; mazeBg.style.display = 'block'; localStorage.setItem('maze_image', event.target.result); };
+    reader.onload = function(event) { 
+        mazeBg.src = event.target.result; 
+        mazeBg.style.display = 'block'; 
+        // 💡 ステージごとのキー名で保存
+        localStorage.setItem(`stage_${currentStageNumber}_image`, event.target.result); 
+    };
     reader.readAsDataURL(file);
 }
-
 function saveImageModeData() {
     if(!mazeBg.src || !imgAnswerObj.src) { alert("問題と答えの両方の画像をセットしてください。"); return; }
     if(!mazeStartPoint || !mazeGoalPoint) { alert("スタート位置とゴール位置を画面上で指定してください。"); return; }
-    localStorage.setItem('judge_system', 'color'); judgeSystemType = 'color';
-    localStorage.setItem('maze_start_pt', JSON.stringify(mazeStartPoint)); localStorage.setItem('maze_goal_pt', JSON.stringify(mazeGoalPoint));
-    alert("登録が完了しました！"); goBackMenu();
+    
+    // 💡 すべて currentStageNumber を組み込んだキー名に変更
+    localStorage.setItem(`stage_${currentStageNumber}_judge_system`, 'color'); 
+    judgeSystemType = 'color';
+    localStorage.setItem(`stage_${currentStageNumber}_start_pt`, JSON.stringify(mazeStartPoint)); 
+    localStorage.setItem(`stage_${currentStageNumber}_goal_pt`, JSON.stringify(mazeGoalPoint));
+    
+    alert(`ステージ ${currentStageNumber} の登録が完了しました！`); 
+    goBackMenu();
 }
 
 function getAllPoints() { return strokeHistory.flat(); }
@@ -311,8 +342,14 @@ function getAllPoints() { return strokeHistory.flat(); }
 function saveTraceModeData() {
     const allPts = getAllPoints(); if (allPts.length < 5) { alert("ルートがなぞられていません。"); return; }
     savedRoute = allPts.filter((_, idx) => idx % 3 === 0); savedRoute.push(allPts[allPts.length - 1]);
-    localStorage.setItem('maze_route', JSON.stringify(savedRoute)); localStorage.setItem('judge_system', 'trace'); judgeSystemType = 'trace';
-    alert("お手本ルートの保存が完了しました！"); goBackMenu();
+    
+    // 💡 すべて currentStageNumber を組み込んだキー名に変更
+    localStorage.setItem(`stage_${currentStageNumber}_route`, JSON.stringify(savedRoute)); 
+    localStorage.setItem(`stage_${currentStageNumber}_judge_system`, 'trace'); 
+    judgeSystemType = 'trace';
+    
+    alert(`ステージ ${currentStageNumber} のお手本ルート保存が完了しました！`); 
+    goBackMenu();
 }
 
 /* ==========================================
@@ -441,4 +478,12 @@ function formatMazeTime(ms) {
     const msm = String(milliseconds).padStart(2, '0');
     
     return `${mm}:${ss}.${msm}`;
+}
+/* ✨ ファイルの1番最後などに追記してください */
+function adminSelectStage(stageNumber) {
+    loadStageData(stageNumber);
+    // 管理者画面のタイトル表示を更新
+    pageTitle.innerText = adminSubMode === 'imageMode' ? `画像2枚登録 (Stage ${stageNumber})` : `なぞりお手本登録 (Stage ${stageNumber})`;
+    resetCanvas();
+    alert(`編集対象を ステージ ${stageNumber} に切り替えました。画像をアップロードして登録してください。`);
 }
