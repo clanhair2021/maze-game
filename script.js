@@ -524,7 +524,7 @@ function refreshStageMenu() {
 
         let imageBoxHtml = `<div class="image-placeholder">STAGE ${i}</div>`;
         if (hasImg) {
-    imageBoxHtml = `<div class="image-placeholder" style="background-image: url('${hasImg}'); background-size: contain; background-repeat: no-repeat; background-position: center; color: transparent;">STAGE ${i}</div>`;
+    imageBoxHtml = `<div class="image-placeholder" style="background-image: url('${hasImg}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>`;
         }
 
         const card = document.createElement('div');
