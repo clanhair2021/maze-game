@@ -464,6 +464,7 @@ function checkRealtimeGoalTouch(x, y) {
 }
 
 function checkAnswerColor() {
+    alert("判定スタート");
     hiddenCanvas.width = canvas.width; 
     hiddenCanvas.height = canvas.height;
     hiddenCtx.drawImage(imgAnswerObj, 0, 0, canvas.width, canvas.height);
