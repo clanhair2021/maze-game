@@ -463,66 +463,76 @@ function checkAnswerColor() {
     hiddenCtx.drawImage(imgAnswerObj, 0, 0, canvas.width, canvas.height);
     
     const allPts = getAllPoints();
+    if (allPts.length === 0) {
+        hasJudged = false;
+        return;
+    }
     
-    if (mazeStartPoint && allPts.length > 0) {
+    // ① スタート地点のチェック
+    if (mazeStartPoint) {
         if (Math.hypot(allPts[0].x - mazeStartPoint.x, allPts[0].y - mazeStartPoint.y) > CONFIG.startTolerance) {
             alert("残念！スタート地点から正しく描き始められていないようです。"); 
             hasJudged = false; 
             return;
         }
     }
-    
-    let totalCheckPoints = 0;
-    let onYellowRouteCount = 0;
 
-    for (let stroke of strokeHistory) {
-        if (stroke.length === 0) continue;
-        for (let i = 0; i < stroke.length; i++) {
-            let pt = stroke[i];
-            totalCheckPoints++; 
-            
-            const pixel = hiddenCtx.getImageData(Math.floor(pt.x), Math.floor(pt.y), 1, 1).data;
-            const r = pixel[0]; 
-            const g = pixel[1]; 
-            const b = pixel[2]; 
-            const a = pixel[3]; 
+    // ② 正解画像（隠しキャンバス）のピクセルデータを取得
+    const imgData = hiddenCtx.getImageData(0, 0, hiddenCanvas.width, hiddenCanvas.height).data;
+    const waypoints = [];
+    const step = 15; // 15ピクセル間隔でチェックポイント（CP）を抽出
 
-            // 黄色ルート（正解ルート）の上を通っているかを検知
+    // 正解画像から「黄色（#FFFF00付近）」の座標をすべて抽出してCP化
+    for (let y = 0; y < hiddenCanvas.height; y += step) {
+        for (let x = 0; x < hiddenCanvas.width; x += step) {
+            const idx = (y * hiddenCanvas.width + x) * 4;
+            const r = imgData[idx];
+            const g = imgData[idx + 1];
+            const b = imgData[idx + 2];
+            const a = imgData[idx + 3];
+
             if (r > 180 && g > 180 && b < 100 && a > 200) {
-                onYellowRouteCount++;
+                waypoints.push({ x: x, y: y, passed: false });
             }
         }
     }
 
-    const traceAccuracy = totalCheckPoints > 0 ? (onYellowRouteCount / totalCheckPoints) : 0;
+    // 正解ルート画像に黄色が塗られていない場合の安全装置
+    if (waypoints.length === 0) {
+        alert("正解ルート（黄色）が画像から検出できませんでした。正解画像を確認してください。");
+        hasJudged = false;
+        return;
+    }
 
-    if (traceAccuracy >= 0.80) { 
+    // ③ プレイヤーの線がそれぞれのチェックポイントの近く（半径20px以内）を通ったか確認
+    let passedCount = 0;
+    const tolerance = 20; // 判定の甘さ（半径20ピクセル以内なら通過とみなす）
+
+    for (let wp of waypoints) {
+        for (let pt of allPts) {
+            if (Math.hypot(pt.x - wp.x, pt.y - wp.y) < tolerance) {
+                wp.passed = true;
+                passedCount++;
+                break; // このCPは通過済みとして次のCPへ
+            }
+        }
+    }
+
+    // 通過率を計算（通過したCP数 / 全CP数）
+    const passRate = passedCount / waypoints.length;
+
+    // ④ 正解ルート上のチェックポイントを 【70%以上】 通過していれば合格！
+    if (passRate >= 0.70) { 
         stopMazeTimer();
         alert("正解！おめでとうございます！"); 
         resetCanvas(); 
         goBackMenu(); 
     } else { 
-        alert("残念！正いルートを大きく外れてしまっているようです。\n「1つ戻る」でやり直せますよ！"); 
+        alert("残念！正解ルートを通っていない（途中でショートカットした）ようです。\n「1つ戻る」でやり直せますよ！"); 
         hasJudged = false; 
     }
 }
 
-function checkAnswerTrace() {
-    const allPts = getAllPoints();
-    if (Math.hypot(allPts[0].x - savedRoute[0].x, allPts[0].y - savedRoute[0].y) > CONFIG.startTolerance) {
-        alert("残念！スタート位置から正しくなぞれていないみたい。"); hasJudged = false; return;
-    }
-    let currentTargetIndex = 0; let maxReachedIndex = 0;
-    for (let uPt of allPts) {
-        if (currentTargetIndex < savedRoute.length) {
-            if (Math.hypot(uPt.x - savedRoute[currentTargetIndex].x, uPt.y - savedRoute[currentTargetIndex].y) < CONFIG.startTolerance) {
-                currentTargetIndex++; if (currentTargetIndex > maxReachedIndex) { maxReachedIndex = currentTargetIndex; }
-            }
-        }
-    }
-    if ((maxReachedIndex / savedRoute.length) >= 0.80) { stopMazeTimer(); alert("正解！おめでとうございます！"); resetCanvas(); goBackMenu(); }
-    else { alert("残念！正しいルートを大きく外れてしまっているようです。\n「1つ戻る」でやり直せますよ！"); hasJudged = false; }
-}
 
 /* ==========================================
    ⏱️ 高精度ミリ秒タイマーの設定
