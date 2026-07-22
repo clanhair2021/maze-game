@@ -40,7 +40,7 @@
         <!-- 左上のメニュー開閉ボタン -->
         <button id="menu-toggle" onclick="toggleDrawer()">⚙</button>
 
-        <!-- スライド式操作パネル（ここに管理用コントロールも統合しました） -->
+        <!-- スライド式操作パネル -->
         <div id="drawer-menu">
             <div class="drawer-header">
                 <h3 id="page-title">迷路メニュー</h3>
@@ -63,48 +63,63 @@
                     </div>
                 </div>
 
-                <!-- 🛠️ 管理者用コントロールパネル（ドロワー内に内包） -->
+                <!-- 🛠️ 管理者用コントロールパネル -->
                 <div id="admin-controls" class="drawer-section" style="display: none; border-top: 2px dashed #000; padding-top: 15px; margin-top: 15px;">
-    <p class="section-label" style="color: #d9534f;">【管理者設定】</p>
-    
-    <!-- 方法Aの入力欄 -->
-    <div id="ctrl-image-mode">
-        <!-- 💡 追記：ステージ名の入力欄 -->
-        <div class="admin-input-group">
-            <label>0. ステージ名を入力</label>
-            <input type="text" id="stage-title-input-a" placeholder="例：CLanからの最初の迷路" style="width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 5px;">
-        </div>
-        <div class="admin-input-group">
-            <label>1. 問題画像を選択</label>
-            <input type="file" id="img-question" accept="image/*">
-        </div>
-        <div class="admin-input-group">
-            <label>2. 答え（壁黒）画像を選択</label>
-            <input type="file" id="img-answer" accept="image/*">
-        </div>
-        <div class="setup-zone">
-            <span id="setup-status">位置を指定してください</span>
-            <button class="admin-sub" onclick="setSetupStep('start')">スタート位置を指定</button>
-            <button class="admin-sub" onclick="setSetupStep('goal')">ゴール位置を指定</button>
-        </div>
-        <button class="admin-save" onclick="saveImageModeData()">設定をまとめて保存</button>
-    </div>
+                    <p class="section-label" style="color: #d9534f;">【管理者設定】</p>
+                    
+                    <!-- 方法Aの入力欄（色判定モード） -->
+                    <div id="ctrl-image-mode">
+                        <div class="mode-description" style="font-size: 12px; line-height: 1.5; background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #ddd;">
+                            <h4 style="margin: 0 0 6px 0; font-size: 13px; color: #333;">色判定モード（2枚の画像で自動作成）</h4>
+                            <p style="margin: 0 0 8px 0;">「問題画像」と「塗り分けした正解画像」の2枚を使って判定データを自動作成します。</p>
+                            <p style="margin: 0 0 4px 0; font-weight: bold;">【正解画像（2枚目）の作成ルール】</p>
+                            <ul style="margin: 0 0 8px 0; padding-left: 18px;">
+                                <li><strong>正解ルート（黄色）</strong>：正解の道をあざやかな黄色（#FFFF00）でなぞります。</li>
+                                <li><strong>スタート位置（青色）</strong>：スタート地点に青色（#0000FF）のマークを塗ります。</li>
+                                <li><strong>ゴール位置（緑色）</strong>：ゴール地点に緑色（#00FF00）のマークを塗ります。</li>
+                            </ul>
+                            <p style="margin: 0; font-size: 11px; color: #666;">※2枚の画像は必ず「全く同じ画像サイズ（縦横のピクセル数）」で作成してください。</p>
+                        </div>
 
-    <!-- 方法Bの入力欄 -->
-    <div id="ctrl-trace-mode" style="display:none;">
-        <!-- 💡 追記：ステージ名の入力欄 -->
-        <div class="admin-input-group">
-            <label>0. ステージ名を入力</label>
-            <input type="text" id="stage-title-input-b" placeholder="例：裏・スピード迷路" style="width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 5px;">
-        </div>
-        <div class="admin-input-group">
-            <label>1. 迷路画像を選択</label>
-            <input type="file" id="img-single" accept="image/*">
-        </div>
-        <p style="font-size: 11px; margin-bottom: 10px;">2. メニューを閉じ、スタートからゴールまでお手本をなぞってください。</p>
-        <button class="admin-save" onclick="saveTraceModeData()">なぞったルートを保存</button>
-    </div>
-</div>
+                        <div class="admin-input-group">
+                            <label>0. ステージ名を入力</label>
+                            <input type="text" id="stage-title-input-a" placeholder="例：CLanからの最初の迷路" style="width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 5px;">
+                        </div>
+                        <div class="admin-input-group">
+                            <label>1. 問題画像を選択</label>
+                            <input type="file" id="img-question" accept="image/*">
+                        </div>
+                        <div class="admin-input-group" style="margin-top: 8px;">
+                            <label>2. 正解（色分け済み）画像を選択</label>
+                            <input type="file" id="img-answer" accept="image/*">
+                        </div>
+
+                        <!-- 💡 補足：画像の色から自動検出されるため、手動で位置を微調整したい場合のみ使用 -->
+                        <div class="setup-zone" style="margin-top: 10px;">
+                            <span id="setup-status" style="font-size: 11px; color: #666;">（スタート/ゴールは画像の色から自動設定されます）</span>
+                            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                                <button class="admin-sub" onclick="setSetupStep('start')" style="font-size: 11px;">手動でスタート位置を変更</button>
+                                <button class="admin-sub" onclick="setSetupStep('goal')" style="font-size: 11px;">手動でゴール位置を変更</button>
+                            </div>
+                        </div>
+
+                        <button class="admin-save" onclick="saveImageModeData()" style="margin-top: 12px; width: 100%;">設定をまとめて保存</button>
+                    </div>
+
+                    <!-- 方法Bの入力欄 -->
+                    <div id="ctrl-trace-mode" style="display:none;">
+                        <div class="admin-input-group">
+                            <label>0. ステージ名を入力</label>
+                            <input type="text" id="stage-title-input-b" placeholder="例：裏・スピード迷路" style="width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 5px;">
+                        </div>
+                        <div class="admin-input-group">
+                            <label>1. 迷路画像を選択</label>
+                            <input type="file" id="img-single" accept="image/*">
+                        </div>
+                        <p style="font-size: 11px; margin-bottom: 10px;">2. メニューを閉じ、スタートからゴールまでお手本をなぞってください。</p>
+                        <button class="admin-save" onclick="saveTraceModeData()">なぞったルートを保存</button>
+                    </div>
+                </div>
             </div>
         </div>
 
