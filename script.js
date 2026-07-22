@@ -1,3 +1,8 @@
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("エラーが発生しました！\n" + message + "\n(" + lineno + "行目)");
+    return true;
+};
+
 /* ==========================================
    ⚙️ システム設定
    ========================================== */
