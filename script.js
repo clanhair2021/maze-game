@@ -379,11 +379,26 @@ canvas.addEventListener('touchmove', (e) => {
     if (!isMazeTimerRunning) {
         startMazeTimer();
     }
-    const pos = getTouchPos(e); currentStroke.push(pos); ctx.lineTo(pos.x, pos.y); ctx.stroke();
-    if (!isAdminMode) { checkRealtimeGoalTouch(pos.x, pos.y); }
+    const pos = getTouchPos(e); 
+    currentStroke.push(pos); 
+    ctx.lineTo(pos.x, pos.y); 
+    ctx.stroke();
+
+    // ⭕️ ゴール判定の直前に、今描いている線（currentStroke）も一時的に履歴へ保存する！
+    if (!isAdminMode) { 
+        strokeHistory.push(currentStroke);
+        checkRealtimeGoalTouch(pos.x, pos.y); 
+        strokeHistory.pop(); // 判定が終わったら一旦戻す（touchendで正式保存されるため）
+    }
 });
 
-canvas.addEventListener('touchend', () => { if (isDrawing && currentStroke.length > 0) { strokeHistory.push(currentStroke); } isDrawing = false; startTouchDistance = 0; });
+canvas.addEventListener('touchend', () => { 
+    if (isDrawing && currentStroke.length > 0) { 
+        strokeHistory.push(currentStroke); 
+    } 
+    isDrawing = false; 
+    startTouchDistance = 0; 
+});
 
 /* ==========================================
    画像アップロードと保存
@@ -464,11 +479,11 @@ function checkRealtimeGoalTouch(x, y) {
 }
 
 function checkAnswerColor() {
-    alert("判定関数が呼び出されました！");
     hiddenCanvas.width = canvas.width; 
     hiddenCanvas.height = canvas.height;
     hiddenCtx.drawImage(imgAnswerObj, 0, 0, canvas.width, canvas.height);
     
+    // 全ての線データを取得
     const allPts = getAllPoints();
     if (allPts.length === 0) {
         hasJudged = false;
@@ -487,9 +502,8 @@ function checkAnswerColor() {
     // ② 正解画像（隠しキャンバス）のピクセルデータを取得
     const imgData = hiddenCtx.getImageData(0, 0, hiddenCanvas.width, hiddenCanvas.height).data;
     const waypoints = [];
-    const step = 15; // 15ピクセル間隔でチェックポイント（CP）を抽出
+    const step = 15;
 
-    // 正解画像から「黄色（#FFFF00付近）」の座標をすべて抽出してCP化
     for (let y = 0; y < hiddenCanvas.height; y += step) {
         for (let x = 0; x < hiddenCanvas.width; x += step) {
             const idx = (y * hiddenCanvas.width + x) * 4;
@@ -503,16 +517,16 @@ function checkAnswerColor() {
             }
         }
     }
-    // 正解ルート画像に黄色が塗られていない場合の安全装置
+
     if (waypoints.length === 0) {
         alert("正解ルート（黄色）が画像から検出できませんでした。正解画像を確認してください。");
         hasJudged = false;
         return;
     }
 
-        // ③ プレイヤーの線がチェックポイントの近くを通ったか確認
+    // ③ 通過チェック
     let passedCount = 0;
-    const tolerance = 35; // 判定幅を少し広げて優しく（20 -> 35）
+    const tolerance = 35;
 
     for (let i = 0; i < waypoints.length; i++) {
         const wp = waypoints[i];
@@ -521,16 +535,16 @@ function checkAnswerColor() {
             if (pt && typeof pt.x === 'number' && typeof pt.y === 'number') {
                 if (Math.hypot(pt.x - wp.x, pt.y - wp.y) < tolerance) {
                     passedCount++;
-                    break; // このチェックポイントはクリア
+                    break;
                 }
             }
         }
     }
 
-    // 通過率の計算と判定
+    // ④ 通過率の計算と判定
     const passRate = waypoints.length > 0 ? (passedCount / waypoints.length) : 0;
 
-    if (passRate >= 0.60) { // 合格ラインを少し優しく 70% -> 60% に調整
+    if (passRate >= 0.60) {
         stopMazeTimer();
         alert("正解！おめでとうございます！"); 
         resetCanvas(); 
@@ -540,6 +554,7 @@ function checkAnswerColor() {
         hasJudged = false; 
     }
 }
+
 
 /* ==========================================
    ⏱️ 高精度ミリ秒タイマーの設定
