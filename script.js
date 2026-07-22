@@ -70,7 +70,7 @@ window.onload = function() {
     window.addEventListener('resize', adjustCanvasSize);
 };
 
-/* 🔍 正解画像から「青(スタート)」「赤(ゴール)」を自動判定する処理 */
+/* 🔍 正解画像から「青(スタート)」「緑(ゴール)」を自動判定する処理 */
 function autoDetectStartAndGoal(ansImgObj) {
     if (!ansImgObj.complete || ansImgObj.naturalWidth === 0) return;
 
@@ -99,8 +99,8 @@ function autoDetectStartAndGoal(ansImgObj) {
             if (!foundStart && b > 180 && r < 100 && g < 100) {
                 foundStart = { x: x, y: y };
             }
-            // 赤色判定 (ゴール)
-            if (!foundGoal && r > 180 && g < 100 && b < 100) {
+            // 緑色判定 (ゴール)
+            if (!foundGoal && g > 180 && r < 100 && b < 100) {
                 foundGoal = { x: x, y: y };
             }
 
