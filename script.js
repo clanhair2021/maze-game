@@ -257,7 +257,9 @@ function openAdmin(mode) {
     isAdminMode = true; adminSubMode = mode; setupStep = 'none';
     pageTitle.innerText = mode === 'imageMode' ? `画像2枚登録 (Stage ${currentStageNumber})` : `なぞりお手本登録 (Stage ${currentStageNumber})`;
     
-    document.getElementById('setup-status').innerText = "位置を指定してください";
+    const statusEl = document.getElementById('setup-status');
+    if (statusEl) statusEl.innerText = "位置を指定してください";
+    
     setMode('draw');
     
     document.getElementById('admin-controls').style.display = 'block';
