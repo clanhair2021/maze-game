@@ -384,13 +384,15 @@ canvas.addEventListener('touchmove', (e) => {
     ctx.lineTo(pos.x, pos.y); 
     ctx.stroke();
 
-    // ⭕️ ゴール判定の直前に、今描いている線（currentStroke）も一時的に履歴へ保存する！
+    // ⭕️ ゴール判定の前に今描いている線を履歴に保存（ゴールに達したらそのまま描き終わりにさせる）
     if (!isAdminMode) { 
-        strokeHistory.push(currentStroke);
+        if (strokeHistory.indexOf(currentStroke) === -1) {
+            strokeHistory.push(currentStroke);
+        }
         checkRealtimeGoalTouch(pos.x, pos.y); 
-        strokeHistory.pop(); // 判定が終わったら一旦戻す（touchendで正式保存されるため）
     }
 });
+
 
 canvas.addEventListener('touchend', () => { 
     if (isDrawing && currentStroke.length > 0) { 
@@ -470,13 +472,22 @@ function checkRealtimeGoalTouch(x, y) {
     if (hasJudged) return;
     if (judgeSystemType === 'color') {
         if (!mazeGoalPoint) return;
-        if (Math.hypot(x - mazeGoalPoint.x, y - mazeGoalPoint.y) < CONFIG.goalTolerance) { isDrawing = false; hasJudged = true; setTimeout(checkAnswerColor, 100); }
+        if (Math.hypot(x - mazeGoalPoint.x, y - mazeGoalPoint.y) < CONFIG.goalTolerance) { 
+            isDrawing = false; 
+            hasJudged = true; 
+            checkAnswerColor(); // ⭕️ setTimeout をやめて即時実行！
+        }
     } else if (judgeSystemType === 'trace') {
         if (savedRoute.length === 0) return;
         const correctEnd = savedRoute[savedRoute.length - 1];
-        if (Math.hypot(x - correctEnd.x, y - correctEnd.y) < CONFIG.goalTolerance) { isDrawing = false; hasJudged = true; setTimeout(checkAnswerTrace, 100); }
+        if (Math.hypot(x - correctEnd.x, y - correctEnd.y) < CONFIG.goalTolerance) { 
+            isDrawing = false; 
+            hasJudged = true; 
+            checkAnswerTrace(); // ⭕️ setTimeout をやめて即時実行！
+        }
     }
 }
+
 
 function checkAnswerColor() {
     hiddenCanvas.width = canvas.width; 
